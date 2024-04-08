@@ -1,11 +1,52 @@
 ﻿using DynamicDLL;
 using System.CodeDom;
 using System.Reflection;
+using System.Text;
+using System.Text.RegularExpressions;
 
 public class Program
 {
     public static void Main(string[] args)
     {
+        string inputFile = File.ReadAllText(@"..\\..\\..\\Input\\Schema.asn");
+        Regex regexMainBlock = new Regex(@"(^|\s+)BEGIN((.*\n)+)(^|\s+)END", RegexOptions.Multiline);
+        Regex regexComment = new Regex(@"(^|\s+)(\/|\*).*", RegexOptions.Multiline);
+        Match mainBlock = regexMainBlock.Match(inputFile);
+        string[] lines = mainBlock.Value.Split('\n');
+        List<string> blocks = new List<string>();
+        StringBuilder sb = new StringBuilder();
+        bool read = false;
+
+        foreach (string line in lines)
+        {
+            if (line.Contains("::="))
+            {
+                if (sb.Length > 0)
+                {
+                    blocks.Add(sb.ToString());
+                }
+                sb = new StringBuilder();
+                sb.Append(line);
+                read = true;
+            }
+            else if (regexComment.IsMatch(line) || line.Contains("END"))
+            {
+                read = false;
+                continue;
+            }
+            else if (read) 
+            {
+                sb.Append(line); 
+            }
+        }
+
+        if (sb.Length > 0)
+        {
+            blocks.Add(sb.ToString());
+        }
+
+        sb.Clear();
+
         string outputPath = @"..\\..\\..\\Output";
         CCUGenerator ccu = new CCUGenerator("DynamicDLL", outputPath);
         var testClass1 = ccu.CreateClass("TestClass1");

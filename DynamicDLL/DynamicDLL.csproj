@@ -10,7 +10,9 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.9.2" />
     <PackageReference Include="System.CodeDom" Version="8.0.0" />
+    <PackageReference Include="System.Formats.Asn1" Version="8.0.0" />
     <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
+    <PackageReference Include="System.Security.Cryptography.Encoding" Version="4.3.0" />
   </ItemGroup>
 
 </Project>
