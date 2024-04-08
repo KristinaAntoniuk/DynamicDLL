@@ -1,0 +1,11 @@
+value Rocket ::= {
+  range 340282366920938463463374607431768211455,
+  name "Falcon",
+  -- use default for the message --
+  fuel solid,
+  speed mph : 18000,
+  payload {
+    "Car",
+    "GPS"
+  }
+}

@@ -1,4 +1,7 @@
-﻿using System.CodeDom;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Emit;
+using System.CodeDom;
 using System.CodeDom.Compiler;
 using System.Reflection;
 
@@ -7,34 +10,36 @@ namespace DynamicDLL
     public class CCUGenerator
     {
         private CodeCompileUnit ccu { get; set; }
-        private CodeNamespace ns { get; set; }
+        private CodeNamespace? ns { get; set; }
         private List<CodeTypeDeclaration> classes { get; set; }
+        private static string? outputFolder { get; set; }
 
-        public CCUGenerator(string namespaceName)
+        public CCUGenerator(string namespaceName, string outputFolderPath)
         {
+            outputFolder = outputFolderPath;
             ccu = new CodeCompileUnit();
-            ns = new CodeNamespace(namespaceName);
             classes = new List<CodeTypeDeclaration>();
+            SetNamespace(namespaceName);
         }
 
-        //TODO: Potentially make this method flexible and add imports according required types in the new class
-        private void SetNamespace()
+        private void SetNamespace(string namespaceName)
         {
+            ns = new CodeNamespace(namespaceName);
             ns.Imports.Add(new CodeNamespaceImport("System"));
+            ccu.Namespaces.Add(ns);
         }
 
-        public void CreateClass(string className)
+        public CodeTypeDeclaration CreateClass(string className)
         {
-            SetNamespace();
             CodeTypeDeclaration newClass = new CodeTypeDeclaration(className);
             newClass.IsClass = true;
             newClass.TypeAttributes = TypeAttributes.Public | TypeAttributes.Sealed;
             ns.Types.Add(newClass);
-            ccu.Namespaces.Add(ns);
             classes.Add(newClass);
+            return newClass;
         }
 
-        public void AddField(string className, string fieldName, Type fieldType)
+        public void AddField(string className, string fieldName, CodeTypeReference fieldType)
         {
             CodeTypeDeclaration? customClass = classes.FirstOrDefault(x => x.Name == className);
             if (customClass == null) { throw new Exception($"Class {className} does not exist"); }
@@ -42,25 +47,64 @@ namespace DynamicDLL
             CodeMemberField newField = new CodeMemberField();
             newField.Attributes = MemberAttributes.Public;
             newField.Name = fieldName;
-            newField.Type = new CodeTypeReference(fieldType);
+            newField.Type = fieldType;
             
             customClass.Members.Add(newField);
         }
 
-        public void Export()
+        public void ExportCs()
         {
             CodeDomProvider provider = CodeDomProvider.CreateProvider("CSharp");
             CodeGeneratorOptions options = new CodeGeneratorOptions();
             options.BracingStyle = "C";
-            foreach(CodeTypeDeclaration customClass in  classes)
+            
+            using (StreamWriter sourceWriter = new StreamWriter($"{outputFolder}\\{ns.Name}.cs"))
             {
-                using (StreamWriter sourceWriter = new StreamWriter($"..\\..\\..\\Output\\{customClass.Name}.cs"))
+                provider.GenerateCodeFromCompileUnit(
+                    ccu, sourceWriter, options);
+            }
+        }
+
+        public void CombineDLL(string[] sourceFiles, bool overrideAssembly = false)
+        {
+            List<SyntaxTree> syntaxTrees = new List<SyntaxTree> { };
+
+            foreach (string file in sourceFiles)
+            {
+                string code = File.ReadAllText(file);
+                syntaxTrees.Add(CSharpSyntaxTree.ParseText(code));
+            }
+
+            var refPaths = new[] {
+                typeof(System.Object).GetTypeInfo().Assembly.Location,
+                typeof(Console).GetTypeInfo().Assembly.Location,
+                Path.Combine(Path.GetDirectoryName(typeof(System.Runtime.GCSettings).GetTypeInfo().Assembly.Location), "System.Runtime.dll")
+            };
+            MetadataReference[] references = refPaths.Select(r => MetadataReference.CreateFromFile(r)).ToArray();
+
+            CSharpCompilation compilation = CSharpCompilation.Create(
+                ns.Name,
+                syntaxTrees: syntaxTrees,
+                references: references,
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+            bool assemblyExists = File.Exists($"{outputFolder}\\{ns.Name}.dll");
+            
+            if (assemblyExists)
+            {
+                if (overrideAssembly)
                 {
-                    provider.GenerateCodeFromCompileUnit(
-                        ccu, sourceWriter, options);
+                    File.Delete($"{outputFolder}\\{ns.Name}.dll");
                 }
+                else return;
             }
             
+            EmitResult result = compilation.Emit($"{outputFolder}\\{ns.Name}.dll");
+        }
+
+        public void AddDLLToProject()
+        {
+            Assembly.LoadFrom($"{outputFolder}\\{ns.Name}.dll");
         }
     }
 }
