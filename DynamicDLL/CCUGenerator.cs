@@ -1,8 +1,10 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
+using Newtonsoft.Json;
 using System.CodeDom;
 using System.CodeDom.Compiler;
+using System.Data;
 using System.Reflection;
 
 namespace DynamicDLL
@@ -33,7 +35,7 @@ namespace DynamicDLL
         {
             CodeTypeDeclaration newClass = new CodeTypeDeclaration(className);
             newClass.IsClass = true;
-            newClass.TypeAttributes = TypeAttributes.Public | TypeAttributes.Sealed;
+            newClass.TypeAttributes = TypeAttributes.Public;
             ns.Types.Add(newClass);
             classes.Add(newClass);
             return newClass;
@@ -62,6 +64,18 @@ namespace DynamicDLL
             {
                 provider.GenerateCodeFromCompileUnit(
                     ccu, sourceWriter, options);
+            }
+        }
+        public void ExportJson()
+        {
+            Assembly assembly = Assembly.LoadFrom($"{outputFolder}\\{ns.Name}.dll");
+
+            foreach(Type t in assembly.GetTypes())
+            {
+                object? commandInstance = Activator.CreateInstance(t);
+
+                string JSONresult = JsonConvert.SerializeObject(commandInstance);
+                File.WriteAllText($"{outputFolder}\\{t.Name}.json", JSONresult);
             }
         }
 

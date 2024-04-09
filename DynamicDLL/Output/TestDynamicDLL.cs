@@ -7,18 +7,18 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DynamicDLL
+namespace TestDynamicDLL
 {
     using System;
     
     
-    public sealed class TestClass1
+    public class TestClass1
     {
         
         public System.Nullable<int> TestFieldInt;
     }
     
-    public sealed class TestClass2
+    public class TestClass2
     {
         
         public string TestFieldString;
@@ -28,7 +28,7 @@ namespace DynamicDLL
         public double TestFieldDouble;
     }
     
-    public sealed class TestClass3
+    public class TestClass3
     {
         
         public System.Collections.Generic.List<string> TestFieldList;

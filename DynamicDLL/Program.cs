@@ -48,7 +48,7 @@ public class Program
         sb.Clear();
 
         string outputPath = @"..\\..\\..\\Output";
-        CCUGenerator ccu = new CCUGenerator("DynamicDLL", outputPath);
+        CCUGenerator ccu = new CCUGenerator("TestDynamicDLL", outputPath);
         var testClass1 = ccu.CreateClass("TestClass1");
         var testClass2 = ccu.CreateClass("TestClass2");
         var testClass3 = ccu.CreateClass("TestClass3");
@@ -63,6 +63,7 @@ public class Program
         string[] filePaths = Directory.GetFiles(outputPath);
         ccu.CombineDLL(filePaths);
         ccu.AddDLLToProject();
+        ccu.ExportJson();
 
         Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
     }
