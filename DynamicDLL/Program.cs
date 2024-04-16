@@ -1,4 +1,5 @@
 ﻿using DynamicDLL;
+using Python.Runtime;
 using System.CodeDom;
 using System.Reflection;
 using System.Text;
@@ -8,6 +9,16 @@ public class Program
 {
     public static void Main(string[] args)
     {
+        Runtime.PythonDLL = @"C:\Users\kristina.antoniuk\AppData\Local\Programs\Python\Python312\python312.dll";
+        string code = File.ReadAllText(@"C:\Users\kristina.antoniuk\Documents\Asfinag\DynamicDLL\DynamicDLL\TestScript.py");
+        PythonEngine.Initialize();
+        using (Py.GIL())
+        {
+            using var scope = Py.CreateScope();
+            scope.Exec(code);
+        }
+
+        #region Parsing Region (unfinished)
         string inputFile = File.ReadAllText(@"..\\..\\..\\Input\\Schema.asn");
         Regex regexMainBlock = new Regex(@"(^|\s+)BEGIN((.*\n)+)(^|\s+)END", RegexOptions.Multiline);
         Regex regexComment = new Regex(@"(^|\s+)(\/|\*).*", RegexOptions.Multiline);
@@ -46,6 +57,58 @@ public class Program
         }
 
         sb.Clear();
+
+        foreach(string block in blocks)
+        {
+            string blockName;
+            Type blockType;
+            List<ASNTypeProperty> properties = new List<ASNTypeProperty>();
+
+            if (block.Contains("::="))
+            {
+                string[] parts = block.Split("::=");
+                blockName = parts[0].Trim();
+                blockType = Constants.asnTypeMapping[parts[1].Trim().ToUpper()];
+            }
+
+            string[] lineParts = block.Split(' ');
+
+            foreach(string linePart in lineParts)
+            {
+                string? propertyName = null;
+                Type? propertyType = null;
+                string[] endIds = { "--", "," };
+
+                linePart.Trim();
+                if (String.IsNullOrEmpty(linePart)) continue;
+                else if (Constants.asnTypeMapping.ContainsKey(linePart))
+                {
+                    propertyType = Constants.asnTypeMapping[linePart];
+                }
+                else if (true/*endIds.Contains*/) 
+                {
+                    if (!String.IsNullOrEmpty(propertyName) && propertyType != null)
+                    {
+                        properties.Add(new ASNTypeProperty(propertyName, propertyType));
+                        break;
+                    }
+                }
+                else if (String.Equals(',', linePart))
+                {
+                    if (!String.IsNullOrEmpty(propertyName) && propertyType != null)
+                    {
+                        properties.Add(new ASNTypeProperty(propertyName, propertyType));
+                        break;
+                    }
+                }
+                else
+                {
+                    propertyName = linePart;
+                }
+            }
+
+        }
+        #endregion
 
         string outputPath = @"..\\..\\..\\Output";
         CCUGenerator ccu = new CCUGenerator("TestDynamicDLL", outputPath);
