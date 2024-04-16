@@ -12,4 +12,5 @@ class UPER:
         return self.encoded
         
     def decode(self, name, data):
+        data = data.encode('windows-1252')
         return self.schema.decode(name, data)

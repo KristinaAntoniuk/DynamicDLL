@@ -1,0 +1,13 @@
+{
+	"range": 340282366920938463463374607431768211455, 
+	"name": "Falcon", 
+	"fuel": "solid", 
+	"vendor": {
+		"id": 234,
+		"domestic": true,
+		"company": { 
+			"id": 892834, 
+			"name": "World Manufacturer"
+		}
+	}
+}

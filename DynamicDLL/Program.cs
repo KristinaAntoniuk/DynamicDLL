@@ -1,5 +1,5 @@
 ﻿using DynamicDLL;
-using Python.Runtime;
+using RestSharp;
 using System.CodeDom;
 using System.Reflection;
 using System.Text;
@@ -9,14 +9,17 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        Runtime.PythonDLL = @"C:\Users\kristina.antoniuk\AppData\Local\Programs\Python\Python312\python312.dll";
-        string code = File.ReadAllText(@"C:\Users\kristina.antoniuk\Documents\Asfinag\DynamicDLL\DynamicDLL\TestScript.py");
-        PythonEngine.Initialize();
-        using (Py.GIL())
-        {
-            using var scope = Py.CreateScope();
-            scope.Exec(code);
-        }
+        #region Encode and decode example asn data using external Python encryptor
+        //This line is necessary in order to use Windows-1252 coding
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+        string schema = File.ReadAllText(@"..\\..\\..\\Input\\SchemaEnc.asn");
+        string data = File.ReadAllText(@"..\\..\\..\\Input\\DataEnc.asn");
+
+        DynamicDLL.Services.Encoder encoder = new DynamicDLL.Services.Encoder(schema, data);
+        byte[]? encoded = encoder.Encode("Rocket");
+        string? decoded = encoder.Decode(encoded);
+        #endregion
 
         #region Parsing Region (unfinished)
         string inputFile = File.ReadAllText(@"..\\..\\..\\Input\\Schema.asn");
@@ -110,6 +113,7 @@ public class Program
         }
         #endregion
 
+        #region Creting .css .json and .dll files programmatically
         string outputPath = @"..\\..\\..\\Output";
         CCUGenerator ccu = new CCUGenerator("TestDynamicDLL", outputPath);
         var testClass1 = ccu.CreateClass("TestClass1");
@@ -129,5 +133,6 @@ public class Program
         ccu.ExportJson();
 
         Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+        #endregion
     }
 }

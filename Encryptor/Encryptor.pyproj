@@ -25,7 +25,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="endpoints.py" />
-    <Compile Include="test.py" />
     <Compile Include="UPER.py" />
   </ItemGroup>
   <ItemGroup>
