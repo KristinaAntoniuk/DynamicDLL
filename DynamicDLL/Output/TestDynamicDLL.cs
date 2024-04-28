@@ -12,27 +12,19 @@ namespace TestDynamicDLL
     using System;
     
     
-    public class TestClass1
+    public class Rocket
     {
         
-        public System.Nullable<int> TestFieldInt;
-    }
-    
-    public class TestClass2
-    {
+        public int range;
         
-        public string TestFieldString;
+        public string name;
         
-        public float TestFieldFloat;
+        public string message;
         
-        public double TestFieldDouble;
-    }
-    
-    public class TestClass3
-    {
+        public string fuel;
         
-        public System.Collections.Generic.List<string> TestFieldList;
+        public string speed;
         
-        public TestClass2 TestFieldTestClass2;
+        public System.Collections.Generic.List<string> payload;
     }
 }

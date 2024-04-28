@@ -1,4 +1,4 @@
-﻿namespace DynamicDLL
+﻿namespace DynamicDLL.Models
 {
     public class ASNTypeProperty
     {

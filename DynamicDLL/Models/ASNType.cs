@@ -1,4 +1,4 @@
-﻿namespace DynamicDLL
+﻿namespace DynamicDLL.Models
 {
     public class ASNType
     {
@@ -13,7 +13,7 @@
 
         public void AddProperty(string name, Type type, List<object>? possibleValues = null)
         {
-            if (String.IsNullOrEmpty(name) || type == null) return;
+            if (string.IsNullOrEmpty(name) || type == null) return;
             ASNTypeProperty prop = new ASNTypeProperty(name, type, possibleValues);
             properties.Add(prop);
         }

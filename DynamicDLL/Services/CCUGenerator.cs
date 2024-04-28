@@ -7,7 +7,7 @@ using System.CodeDom.Compiler;
 using System.Data;
 using System.Reflection;
 
-namespace DynamicDLL
+namespace DynamicDLL.Services
 {
     public class CCUGenerator
     {
@@ -50,7 +50,7 @@ namespace DynamicDLL
             newField.Attributes = MemberAttributes.Public;
             newField.Name = fieldName;
             newField.Type = fieldType;
-            
+
             customClass.Members.Add(newField);
         }
 
@@ -59,7 +59,7 @@ namespace DynamicDLL
             CodeDomProvider provider = CodeDomProvider.CreateProvider("CSharp");
             CodeGeneratorOptions options = new CodeGeneratorOptions();
             options.BracingStyle = "C";
-            
+
             using (StreamWriter sourceWriter = new StreamWriter($"{outputFolder}\\{ns.Name}.cs"))
             {
                 provider.GenerateCodeFromCompileUnit(
@@ -70,7 +70,7 @@ namespace DynamicDLL
         {
             Assembly assembly = Assembly.LoadFrom($"{outputFolder}\\{ns.Name}.dll");
 
-            foreach(Type t in assembly.GetTypes())
+            foreach (Type t in assembly.GetTypes())
             {
                 object? commandInstance = Activator.CreateInstance(t);
 
@@ -90,7 +90,7 @@ namespace DynamicDLL
             }
 
             var refPaths = new[] {
-                typeof(System.Object).GetTypeInfo().Assembly.Location,
+                typeof(object).GetTypeInfo().Assembly.Location,
                 typeof(Console).GetTypeInfo().Assembly.Location,
                 Path.Combine(Path.GetDirectoryName(typeof(System.Runtime.GCSettings).GetTypeInfo().Assembly.Location), "System.Runtime.dll")
             };
@@ -103,7 +103,7 @@ namespace DynamicDLL
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             bool assemblyExists = File.Exists($"{outputFolder}\\{ns.Name}.dll");
-            
+
             if (assemblyExists)
             {
                 if (overrideAssembly)
@@ -112,7 +112,7 @@ namespace DynamicDLL
                 }
                 else return;
             }
-            
+
             EmitResult result = compilation.Emit($"{outputFolder}\\{ns.Name}.dll");
         }
 
